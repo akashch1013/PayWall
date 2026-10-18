@@ -1,0 +1,81 @@
+[project]
+name = "paywall"
+version = "0.1.0"
+description = "Embeddable, self-hosted closed-loop wallet for Python apps: double-entry ledger, idempotent APIs, payment-gateway top-ups."
+readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
+authors = [
+    { name = "Akash Chaudhari", email = "akashchaudhari1012@gmail.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.20.0",
+    "asyncpg>=0.32.0",
+    "fastapi>=0.143.0",
+    "pydantic-settings>=2.15.0",
+    "sqlalchemy[asyncio]>=2.1.4",
+    "typer>=0.27.3",
+]
+
+[project.scripts]
+paywall = "paywall.cli:app"
+
+[project.optional-dependencies]
+server = [
+    "pyjwt>=2.15.1",
+    "uvicorn>=0.54.0",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "bandit>=1.9.4",
+    "httpx>=0.28.1",
+    "hypothesis>=6.169.0",
+    "mypy>=2.4.0",
+    "paywall[server]",
+    "pip-audit>=2.10.1",
+    "pre-commit>=4.6.2",
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.0",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# Editor/agent tooling is not project code; the approved design spec is kept verbatim.
+extend-exclude = [".claude", ".agents", "docs/superpowers"]
+
+[tool.ruff.lint]
+# E/W/F: pycodestyle + pyflakes, I: imports, B: bugbear, UP: modern syntax,
+# S: security (bandit rules), ASYNC: blocking calls in async code, SIM/RUF: simplifications.
+select = ["E", "W", "F", "I", "B", "UP", "S", "ASYNC", "SIM", "RUF"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]  # pytest asserts; fake secrets in fixtures
+
+[tool.mypy]
+strict = true
+files = ["src", "tests"]
+plugins = ["pydantic.mypy"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["error"]
+asyncio_mode = "auto"
+# One event loop for the whole session, so session-scoped async fixtures (the test DB) can be shared.
+asyncio_default_fixture_loop_scope = "session"
+asyncio_default_test_loop_scope = "session"
+
+[tool.coverage.run]
+source = ["paywall"]
+branch = true
+
+[tool.uv.sources]
+paywall = { workspace = true }
